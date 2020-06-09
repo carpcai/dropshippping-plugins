@@ -1,0 +1,38 @@
+{
+   "manifest_version":2,
+   "version":"1.0",
+   "name":"dropshipping选品工具",
+   "description":"",
+   "icons": {
+      "128": "/static/images/icon128.png",
+      "16": "/static/images/icon16.png",
+      "48": "/static/images/icon48.png"
+   },
+   "permissions":
+  [
+     "contextMenus", // 右键菜单
+     "tabs", // 标签
+     "notifications", // 通知
+     "webRequest", // web请求
+     "webRequestBlocking", // 阻塞式web请求
+       "storage", // 插件本地存储
+       "declarativeContent",
+     "http://*/*", // 可以通过executeScript或者insertCSS访问的网站
+     "https://*/*" // 可以通过executeScript或者insertCSS访问的网站
+  ],
+   "browser_action":{
+      "default_icon": {
+         "19": "/static/images/icon16.png",
+          "38": "/static/images/icon48.png"
+         },
+      "default_title": "测试使用",
+      "default_popup": "index.html"
+   },
+   "content_scripts": [
+     {
+         "matches": ["*://app.eprolo.com/mproductlist.htm"],//改成你要加载的页面url,比如*://www.baidu.com/
+         "js": ["static/js/jquery.js", "static/js/input-code.js"],
+         "run_at": "document_end"
+     }
+   ]
+}
