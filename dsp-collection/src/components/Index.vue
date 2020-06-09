@@ -19,7 +19,7 @@
       </el-form-item>
       <el-form-item>
     <el-button size="small" type="primary" @click="getProductsList">商品查询</el-button>
-    <el-button size="small" @click="pushProductsList" loading="publishLoading">推送选中的所有商品</el-button>
+    <el-button size="small" @click="pushProductsList" v-loading="publishLoading">推送选中的所有商品</el-button>
     <span v-show="pushNumberShow">推送成功数量:{{pushNumber}}</span>
       </el-form-item>
   </el-form>
