@@ -7,7 +7,7 @@
   "scripts": {
     "dev": "webpack-dev-server --inline --progress --config build/webpack.dev.conf.js",
     "test": "NODE_ENV=test && rimraf dist && node build/build.js --config build/webpack.test.conf.js",
-    "release": "NODE_ENV=release && rimraf dist && node build/build.js --config build/webpack.test.conf.js",
+    "release": "NODE_ENV=release && rimraf dist && node build/build.js --config build/webpack.release.conf.js",
     "start": "npm run dev",
     "build": "NODE_ENV=production && rimraf dist && node build/build.js"
   },
