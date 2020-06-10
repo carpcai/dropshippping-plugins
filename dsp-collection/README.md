@@ -25,6 +25,10 @@ If you want to build a plugins in test environment, run:
 ```
 npm run test
 ```
+If you want to build a plugins in release environment, run:
+```
+npm run release
+```
 1. Then you will get ``` dist ``` file in the same directory
 
 2. Now you can View ``` chrome —— more tools —— extension  ``` to open ``` Develop mode ```

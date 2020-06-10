@@ -12,6 +12,8 @@ const config = require('../config')
 let webpackConfig
 if(process.env.NODE_ENV == 'test'){
   webpackConfig = require('./webpack.test.conf')
+}else if(process.env.NODE_ENV == 'release'){
+  webpackConfig = require('./webpack.release.conf')
 }else{
   webpackConfig = require('./webpack.prod.conf')
 }
