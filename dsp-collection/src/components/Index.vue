@@ -64,8 +64,8 @@ export default {
       pushNumberShow:false,
       publishLoading: false,
       organizationMap: {
-        "landon-test-01": "86cf3a92b2c04d849a6056e7cd82e043",
-        "dropshipping-release-incy": "9bba1ea4d5a144049772bef6b7a1841a",
+        "landon-test-01": "9bba1ea4d5a144049772bef6b7a1841a",
+        "dropshipping-release-incy": "86cf3a92b2c04d849a6056e7cd82e043",
       },
       appData: {
         app: {
