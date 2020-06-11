@@ -18,7 +18,7 @@
      ></el-input>
       </el-form-item>
       <el-form-item>
-    <el-button size="small" type="primary" @click="getProductsList">商品查询</el-button>
+    <el-button size="small" type="primary" @click="getProductsList(1)">商品查询</el-button>
     <el-popconfirm
       @onConfirm="pushProductsList"
       title="确定要推送这些商品吗？？"
@@ -46,6 +46,13 @@
     </el-card>
   </el-col>
 </el-row>
+<el-pagination
+    @current-change="handleCurrentChange"
+    :current-page.sync="currentPage"
+    :page-size="100"
+    layout="prev, pager, next, jumper"
+    :total="100000">
+  </el-pagination>
   </div>
   
   </div>
@@ -59,6 +66,7 @@ export default {
       productList: [],
       api_key: this.$cookies.get('am-api-key'),
       input: '',
+      currentPage: 1,
       currentDate: new Date(),
       pushNumber: 0,
       pushNumberShow:false,
@@ -89,7 +97,15 @@ export default {
     initOrganization(){
       this.appData.organization.id = this.organizationMap[this.appData.app.key]
     },
-    getProductsList(){
+    
+    handleCurrentChange(val) {
+      console.log(val);
+      this.currentPage = val;
+      this.getProductsList(this.currentPage)
+        // console.log(`当前页: ${val}`);
+        // getProductsList(val)
+    },
+    getProductsList(page =1 ){
       const self = this;
       
       //api-key处理
@@ -105,7 +121,7 @@ export default {
         queryStr = data.join(',')
       }
 
-      let params = {limit:50}
+      let params = {page: page, limit:50}
       params.external_vendor_product_ids = queryStr
 
 			self.$axios.get(process.env.VUE_APP_API_URL_SUPPLIER + '/suppliers/v1/products',{params:params,  headers:headers}).then((response) => {
