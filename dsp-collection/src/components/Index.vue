@@ -19,7 +19,13 @@
       </el-form-item>
       <el-form-item>
     <el-button size="small" type="primary" @click="getProductsList">商品查询</el-button>
-    <el-button size="small" @click="pushProductsList" v-loading="publishLoading">推送选中的所有商品</el-button>
+    <el-popconfirm
+      @onConfirm="pushProductsList"
+      title="确定要推送这些商品吗？？"
+    >
+      <el-button slot="reference" size="small" :loading="publishLoading">推送选中的所有商品</el-button>
+    </el-popconfirm>
+    
     <span v-show="pushNumberShow">推送成功数量:{{pushNumber}}</span>
       </el-form-item>
   </el-form>
@@ -57,24 +63,32 @@ export default {
       pushNumber: 0,
       pushNumberShow:false,
       publishLoading: false,
+      organizationMap: {
+        "landon-test-01": "86cf3a92b2c04d849a6056e7cd82e043",
+        "dropshipping-release-incy": "9bba1ea4d5a144049772bef6b7a1841a",
+      },
       appData: {
         app: {
-          key: "landon-test-01",
+          key: "dropshipping-release-incy",
           name: "aftership",
           platform: "shopify"
         },
         organization: {
-          id: "9bba1ea4d5a144049772bef6b7a1841a"
+          id: ""
         }
       },
     }
   },
   created: function () {
       const self = this;
+
       // self.setApiKey()
       // self.getProductsList();
 		},
   methods: {
+    initOrganization(){
+      this.appData.organization.id = this.organizationMap[this.appData.app.key]
+    },
     getProductsList(){
       const self = this;
       
@@ -95,13 +109,23 @@ export default {
       params.external_vendor_product_ids = queryStr
 
 			self.$axios.get(process.env.VUE_APP_API_URL_SUPPLIER + '/suppliers/v1/products',{params:params,  headers:headers}).then((response) => {
-        console.log(response.data.data.products)
-          self.productList = response.data.data.products;
+        //修复精度问题。
+        let products = response.data.data.products;
+        for(let product of products){
+          for(let variant of product.variants){
+            variant.price.amount = _.round(variant.price.amount, 2)
+          }
+        }
+
+        self.productList = products;
+          
       })
 
     },
     pushProductsList(){
       const self = this;
+
+      self.initOrganization()
 
       self.publishLoading = true;
       self.pushNumberShow = true;
@@ -199,7 +223,7 @@ export default {
 
       for(let variant of product.variants){
         const variantShippingPrice = shippingPriceMap[variant.universal_id]
-        variant.price.amount = _.add(variant.price.amount, variantShippingPrice.prices[1].amount);
+        variant.price.amount = _.round(_.add(variant.price.amount, variantShippingPrice.prices[1].amount), 2)
       }
       return product
     }
