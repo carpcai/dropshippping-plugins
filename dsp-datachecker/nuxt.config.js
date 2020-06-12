@@ -41,15 +41,15 @@ export default {
   */
   modules: [
     '@nuxtjs/axios',
-    '@nuxtjs/proxy'
+    '@nuxtjs/proxy',
+    "cookie-universal-nuxt"
   ],
   proxy:[
-    // Proxies /foo to http://example.com/foo
-    'http://localhost:8080/suppliers',
+    // 'http://localhost:8080/suppliers',
+    // 'http://localhost:8079/dropshipping',
 
-    // Proxies /api/books/*/**.json to http://example.com:8000
-    'http://localhost:8079/dropshipping',
-
+    'https://testing-incy-platform.automizelyapi.io/suppliers',
+    'https://testing-incy-product.automizelyapi.io/dropshipping',
   ],
   /*
   ** Build configuration

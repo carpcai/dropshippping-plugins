@@ -64,11 +64,21 @@ export default {
   },
   created: function () {
     const self = this;
+    self.initApiKey();
     self.searchStart();
   },
   methods: {
+    async initApiKey(){
+      const self = this;
+      self.am_api_key =  self.$cookies.get('am-api-key')
+    },
     async searchStart(){
       const self = this;
+      
+      if(self.am_api_key){
+        self.$cookies.set('am-api-key', self.am_api_key)
+      }
+
       let business_order_id = await self.getDropshippingList();
       let supplier_order_id = await self.getSuppliersList(business_order_id);
       self.getVendorList(supplier_order_id);
@@ -77,7 +87,7 @@ export default {
       const self = this
       const res = await this.$axios.$get('/dropshipping/v1/orders', {
         params: self.reqData, 
-        headers: {am_api_key: self.am_api_key},
+        headers: {"am-api-key": self.am_api_key},
       })
       self.dropshippingList = res.data.orders[0]
       if(!res.data.orders){
@@ -91,7 +101,7 @@ export default {
         params: {
           business_order_id: business_order_id,
         }, 
-        headers: {am_api_key: self.am_api_key},
+        headers: {"am-api-key": self.am_api_key},
       })
       self.supplierList = res.data.orders[0]
       console.log(self.supplierList);
@@ -107,7 +117,7 @@ export default {
         params: {
           supplier_order_id: supplier_order_id
         }, 
-        headers: {am_api_key: self.am_api_key},
+        headers: {"am-api-key": self.am_api_key},
       })
       self.vendorList = res.data.orders
     }
