@@ -1,5 +1,5 @@
 <template>
-  <div class="container">
+  <div class="index-container">
     <div>
       <logo />
       <h1 class="title">
@@ -31,8 +31,8 @@ export default {
 }
 </script>
 
-<style>
-.container {
+<style scoped>
+.index-container {
   margin: 0 auto;
   min-height: 100vh;
   display: flex;

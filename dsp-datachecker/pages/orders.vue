@@ -1,11 +1,12 @@
 <template>
   <div class="container">
-    <div style="padding:16px">
+    <div style="padding:16px;">
       <h1 class="title">
         dsp-datachecker
       </h1>
     </div>
-    <div style="padding:16px">
+    <div style="padding:16px; width: 100% !important;
+  margin: 0 !important;">
       <Input v-model="am_api_key" type="password" placeholder="am-api-key" style="width: 220px" />
       <Input v-model="reqData.app_key" placeholder="app_key" style="width: 180px" />
       <Input v-model="reqData.app_platform" placeholder="app platform" style="width: 150px" />
@@ -13,7 +14,7 @@
       <Input search enter-button v-model="reqData.order_numbers" style="width: 220px" placeholder="订单Id"  @on-search="searchStart"/>
     </div>
     <div style="display: flex;"> 
-      <div style="padding: 6px;background: #f8f8f9">
+      <div style="padding: 6px;background: #f8f8f9;">
         <Card title="Dropshipping" icon="ios-options" :padding="0" shadow style="width: 460px;">
             <div class="json-card">
               <json-view :data="dropshippingList"/>
@@ -55,7 +56,7 @@ export default {
       vendorList:{},
       am_api_key: "",
       reqData:{
-        order_numbers: "1024",
+        order_numbers: "",
         app_key: "dropshipping-release-incy",
         app_platform: "shopify",
         organization_id: "86cf3a92b2c04d849a6056e7cd82e043",
@@ -78,41 +79,62 @@ export default {
       if(self.am_api_key){
         self.$cookies.set('am-api-key', self.am_api_key)
       }
-
+    
       let business_order_id = await self.getDropshippingList();
       let supplier_order_id = await self.getSuppliersList(business_order_id);
       self.getVendorList(supplier_order_id);
     },
     async getDropshippingList() {
       const self = this
+      let req = {
+        app_key: self.reqData.app_key,
+        app_platform: self.reqData.app_platform,
+        organization_id: self.reqData.organization_id,
+      }
+      if(self.reqData.order_numbers){
+        req.order_numbers = self.reqData.order_numbers;
+      }
+
       const res = await this.$axios.$get('/dropshipping/v1/orders', {
-        params: self.reqData, 
+        params: req, 
         headers: {"am-api-key": self.am_api_key},
       })
-      self.dropshippingList = res.data.orders[0]
-      if(!res.data.orders){
+      self.dropshippingList = res.data.orders
+      if(!res.data.orders[0]){
         return ''
       }
-      return res.data.orders.id
+      return res.data.orders[0].id
     },
     async getSuppliersList(business_order_id) {
       const self = this
+
+      if(!business_order_id){
+         self.supplierList = {}
+        return ''
+      }
+
       const res = await this.$axios.$get('/suppliers/v1/orders',{
         params: {
-          business_order_id: business_order_id,
+          business_order_ids: business_order_id,
         }, 
         headers: {"am-api-key": self.am_api_key},
       })
-      self.supplierList = res.data.orders[0]
-      console.log(self.supplierList);
 
-      if(!res.data.orders){
+      if(!res.data.orders[0]){
+        self.supplierList = {}
         return ''
       }
-      return res.data.orders.id
+      self.supplierList = res.data.orders[0]
+      
+      return res.data.orders[0].id
     },
     async getVendorList(supplier_order_id) {
       const self = this
+      if(!supplier_order_id){
+        self.vendorList = {}
+        return ''
+      }
+
       const res = await this.$axios.$get('/suppliers/v1/vendor-orders',{
         params: {
           supplier_order_id: supplier_order_id
@@ -125,7 +147,7 @@ export default {
 }
 </script>
 
-<style>
+<style scoped>
 .container {
   margin: 0 auto;
   min-height: 100vh;
