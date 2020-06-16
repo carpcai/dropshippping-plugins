@@ -7,10 +7,18 @@
      type="password"
      placeholder="请输入API KEY"
      ></el-input>
-             <el-input
-     v-model="appData.app.key"
-     placeholder="请输入店铺app key"
-     ></el-input>
+     <!-- <el-input
+      v-model="appData.app.key"
+      placeholder="请输入店铺app key"
+     ></el-input> -->
+     <el-select v-model="appData.app.key" placeholder="请选择">
+      <el-option
+        v-for="(item, index) in organizationArray"
+        :key="item"
+        :label="item"
+        :value="item">
+      </el-option>
+    </el-select>
     <el-input
      v-model="input"
      placeholder="搜索内容"
@@ -71,9 +79,16 @@ export default {
       pushNumber: 0,
       pushNumberShow:false,
       publishLoading: false,
+      organizationArray: [
+        "landon-test-01",
+        "dropshipping-release-incy",
+        "automizely-store",
+      ],
       organizationMap: {
         "landon-test-01": "9bba1ea4d5a144049772bef6b7a1841a",
         "dropshipping-release-incy": "86cf3a92b2c04d849a6056e7cd82e043",
+        // "automizely-store":"b82f5a20ae024f5f82f2a90e8a54bc35",
+        "automizely-store":"86cf3a92b2c04d849a6056e7cd82e043",
       },
       appData: {
         app: {
@@ -82,7 +97,7 @@ export default {
           platform: "shopify"
         },
         organization: {
-          id: ""
+          id: "automizely-store"
         }
       },
     }
@@ -129,7 +144,7 @@ export default {
         let products = response.data.data.products;
         for(let product of products){
           for(let variant of product.variants){
-            variant.price.amount = _.round(variant.price.amount, 2)
+            variant.price.amount = _.round(variant.price.amount, 0)
           }
         }
 
@@ -172,7 +187,15 @@ export default {
         }).catch(e => {
           console.log(e);
           if(e.message == 'Request failed with status code 409'){
-            // self.publishProduct(product_id)
+            //查出该商品信息
+
+            let params = {
+              
+            }
+            self.$axios.get(process.env.VUE_APP_API_URL_DROPSHIPPING +'/dropshipping/v1/products', {headers:headers,params: params}).then((response) => {
+              
+            })
+            self.publishProduct(product_id)
             this.$set(o,"requestSuccess", '此商品曾被推送成功')
           }else{
             this.$set(o,"requestSuccess", '')
@@ -181,6 +204,9 @@ export default {
         })
       }
      
+    },
+    getDropshippingProductId(universal_id){
+
     },
     publishProduct(product_id, o){
       const self = this;

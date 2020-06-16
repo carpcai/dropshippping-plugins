@@ -11,7 +11,7 @@
         <Button type="primary" to="orders">
           Orders
         </Button>
-        <Button target="_blank" to="">
+        <Button target="_blank" to="products">
           Products
         </Button>
         <Button target="_blank" to="https://www.iviewui.com/">
