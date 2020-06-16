@@ -44,7 +44,7 @@
       <img :src="o.image_urls[0]" class="image">
       <div style="padding: 8px;">
         <b class="title">{{o.title}}</b>
-        <div v-for="(ov) in o.variants.slice(0,1)" ><span class="price">${{ov.price.amount}}</span> <span class="product-id">{{o.external_vendor_product_id}}</span></div>
+        <div v-for="(ov) in o.variants.slice(0,1)" ><span class="price">${{ov.price.amount / 100}}</span> <span class="product-id">{{o.external_vendor_product_id}}</span></div>
         <div class="bottom clearfix">
           <b style="color: red">{{o.requestErrorMsg}} </b>
           <b style="color: green">{{o.requestSuccess}}</b>
@@ -59,7 +59,7 @@
     :current-page.sync="currentPage"
     :page-size="100"
     layout="prev, pager, next, jumper"
-    :total="100000">
+    :total="60000">
   </el-pagination>
   </div>
   
