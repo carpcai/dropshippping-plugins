@@ -135,7 +135,7 @@ export default {
         return ''
       }
 
-      const res = await this.$axios.$get('/suppliers/v1/vendor-orders',{
+      const res = await this.$axios.$get('/suppliers/v1/vendors-orders',{
         params: {
           supplier_order_id: supplier_order_id
         }, 

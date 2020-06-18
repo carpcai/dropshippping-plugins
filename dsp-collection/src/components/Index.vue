@@ -190,12 +190,12 @@ export default {
             //查出该商品信息
 
             let params = {
-              
+              universal_product_ids: o.universal_product_id,
             }
             self.$axios.get(process.env.VUE_APP_API_URL_DROPSHIPPING +'/dropshipping/v1/products', {headers:headers,params: params}).then((response) => {
-              
+              console.log(response.data);
             })
-            self.publishProduct(product_id)
+            // self.publishProduct(product_id)
             this.$set(o,"requestSuccess", '此商品曾被推送成功')
           }else{
             this.$set(o,"requestSuccess", '')
@@ -205,7 +205,7 @@ export default {
       }
      
     },
-    getDropshippingProductId(universal_id){
+    getDropshippingProductId(universal_product_id){
 
     },
     publishProduct(product_id, o){
@@ -258,13 +258,13 @@ export default {
           return product
         }
 
-        for(let variant_universal_id of shipping_price.variant_universal_ids){
-          shippingPriceMap[variant_universal_id] = shippingOptionRes;
+        for(let universal_variant_id of shipping_price.universal_variant_ids){
+          shippingPriceMap[universal_variant_id] = shippingOptionRes;
         }
       }
 
       for(let variant of product.variants){
-        const variantShippingPrice = shippingPriceMap[variant.universal_id]
+        const variantShippingPrice = shippingPriceMap[variant.universal_variant_id]
         variant.price.amount = _.round(_.add(variant.price.amount, variantShippingPrice.prices[1].amount), 2)
       }
       return product

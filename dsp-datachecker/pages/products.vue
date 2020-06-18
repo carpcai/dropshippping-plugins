@@ -81,20 +81,20 @@ export default {
         self.$cookies.set('am-api-key', self.am_api_key)
       }
 
-      let universal_id = await self.getSuppliersList();
+      let universal_product_id = await self.getSuppliersList();
       await self.getDropshippingList(universal_id);
 
       // self.getVendorList(supplier_order_id);
     },
-    async getDropshippingList(universal_id) {
+    async getDropshippingList(universal_product_id) {
       const self = this
       let req = {
         app_key: self.reqData.app_key,
         app_platform: self.reqData.app_platform,
         organization_id: self.reqData.organization_id,
       }
-      if(universal_id){
-        req.universal_ids = universal_id
+      if(universal_product_id){
+        // req.universal_product_ids = universal_product_id
       }
 
       const res = await this.$axios.$get('/dropshipping/v1/products', {
@@ -125,7 +125,7 @@ export default {
         return ''
       }
       self.supplierList = res.data.products
-      return self.supplierList[0].id
+      return self.supplierList[0].universal_product_id
     }
   }
 }
