@@ -44,7 +44,11 @@
       <img :src="o.image_urls[0]" class="image">
       <div style="padding: 8px;">
         <b class="title">{{o.title}}</b>
-        <div v-for="(ov) in o.variants.slice(0,1)" ><span class="price">${{ov.price.amount / 100}}</span> <span class="product-id">{{o.external_vendor_product_id}}</span></div>
+        <div v-for="(ov) in o.variants.slice(0,1)" >
+          <span class="price-title">销售价:</span> <span class="price">${{ov.price.amount / 100}}</span> 
+          <span class="price-title">成本价:</span> <span class="price">${{ov.price.origin_amount / 100}}</span> <br />
+          <span class="price-title">运费价:</span> <span class="price">${{ov.price.shipping_amount / 100}}</span> 
+        <span class="product-id">{{o.external_vendor_product_id}}</span></div>
         <div class="bottom clearfix">
           <b style="color: red">{{o.requestErrorMsg}} </b>
           <b style="color: green">{{o.requestSuccess}}</b>
@@ -73,7 +77,7 @@ export default {
     return {
       productList: [],
       api_key: this.$cookies.get('am-api-key'),
-      input: '',
+      input: '8114333',
       currentPage: 1,
       currentDate: new Date(),
       pushNumber: 0,
@@ -92,14 +96,34 @@ export default {
       },
       appData: {
         app: {
-          key: "dropshipping-release-incy",
+          key: "automizely-store",
           name: "aftership",
           platform: "shopify"
         },
         organization: {
-          id: "automizely-store"
+          id: ""
         }
       },
+      priceFactors: [
+        {
+          min: 0,
+          max: 499,
+          factor: "1.5",
+          originFactor: "2.5",
+        },
+        {
+          min: 500,
+          max: 999,
+          factor: "1.25",
+          originFactor: "2",
+        },
+        {
+          min: 1000,
+          max: 999999999,
+          factor: "1.1",
+          originFactor: "1.5",
+        }
+      ]
     }
   },
   created: function () {
@@ -114,7 +138,6 @@ export default {
     },
     
     handleCurrentChange(val) {
-      console.log(val);
       this.currentPage = val;
       this.getProductsList(this.currentPage)
         // console.log(`当前页: ${val}`);
@@ -143,9 +166,11 @@ export default {
         //修复精度问题。
         let products = response.data.data.products;
         for(let product of products){
+          // 处理成最终价格
           for(let variant of product.variants){
             variant.price.amount = _.round(variant.price.amount, 0)
           }
+          product = self.productsPricesHandler(product);
         }
 
         self.productList = products;
@@ -172,7 +197,7 @@ export default {
         
         let pushProduct = _.cloneDeepWith(o)
         
-        pushProduct = self.productsPricesHandler(pushProduct);
+        // pushProduct = self.productsPricesHandler(pushProduct);
         // let product_id = o.id
 
         pushProduct.app = self.appData.app;
@@ -183,17 +208,21 @@ export default {
           let product_id = response.data.data.id
           self.publishProduct(product_id, o)
           
+          
           self.$set(o,"requestSuccess", '推送中，请稍后~')
         }).catch(e => {
-          console.log(e);
+          console.log(e.message);
+
           if(e.message == 'Request failed with status code 409'){
             //查出该商品信息
-
             let params = {
               universal_product_ids: o.universal_product_id,
+              app_key: self.appData.app.key,
+              app_platform: self.appData.app.platform,
+              organization_id: self.appData.organization.id,
             }
             self.$axios.get(process.env.VUE_APP_API_URL_DROPSHIPPING +'/dropshipping/v1/products', {headers:headers,params: params}).then((response) => {
-              console.log(response.data);
+              console.log(response.data.data);
             })
             // self.publishProduct(product_id)
             this.$set(o,"requestSuccess", '此商品曾被推送成功')
@@ -201,6 +230,7 @@ export default {
             this.$set(o,"requestSuccess", '')
             this.$set(o,"requestErrorMsg", '推送失败: ' + e.message)
           }
+          self.publishLoading = false;
         })
       }
      
@@ -226,6 +256,7 @@ export default {
       })
     },
     productsPricesHandler(product){
+      const self = this;
       // let shipping_prices = product.shipping_prices;
       // let variants = product.variants;
       if(product.shipping_prices.length == 0){
@@ -249,9 +280,20 @@ export default {
           shippingOptionRes = _.cloneDeep(shippingOptionsMap["USA-USPS"])
         }else if(shippingOptionsMap["USA-4PX"]){
           shippingOptionRes = _.cloneDeep(shippingOptionsMap["USA-4PX"])
+        }else if(shippingOptionsMap["USA-US Express Shipping"]){
+          shippingOptionRes = _.cloneDeep(shippingOptionsMap["USA-US Express Shipping"])
+        }else if(shippingOptionsMap["USA-US Standard"]){
+          shippingOptionRes = _.cloneDeep(shippingOptionsMap["USA-US Standard"])
         }
+        
 
-        shippingOptionRes.prices = _.keyBy(shippingOptionRes.prices, 'unit')
+        try{
+          shippingOptionRes.prices = _.keyBy(shippingOptionRes.prices, 'unit')
+        }catch(e){
+
+          // console.log(product.external_vendor_product_id);
+          // console.log('+============');
+        }
 
         //TODO： 若此处没有运费价格，应该是要返回报错的。
         if(!shippingOptionRes){
@@ -265,8 +307,23 @@ export default {
 
       for(let variant of product.variants){
         const variantShippingPrice = shippingPriceMap[variant.universal_variant_id]
-        variant.price.amount = _.round(_.add(variant.price.amount, variantShippingPrice.prices[1].amount), 2)
+        //循环给price 进行加价
+        let variantxSellPrice = 0;
+
+        for(let priceFactor of self.priceFactors){
+          if(priceFactor.min <= variant.price.amount && variant.price.amount <= priceFactor.max){
+            variantxSellPrice = _.round(_.multiply(variant.price.amount, priceFactor.factor),0)
+          }
+        }
+
+        variant.price.origin_amount = variant.price.amount;
+        try{
+          variant.price.shipping_amount = variantShippingPrice.prices[1].amount;
+        }catch(e){
+        }
+        variant.price.amount = _.round(_.add(variantxSellPrice, variantShippingPrice.prices[1].amount), 0)
       }
+
       return product
     }
   }
@@ -310,6 +367,10 @@ export default {
     text-overflow: ellipsis;
     display: -webkit-box;
     -webkit-box-orient: vertical;
+  }
+  .price-title{
+    font-size: 0.5em ;
+    color: #777;
   }
   .price{
     color: orange;

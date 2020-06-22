@@ -53,6 +53,9 @@ export default {
 
     // 'https://release-incy-platform.automizelyapi.io/suppliers',
     // 'https://release-incy-product.automizelyapi.io/dropshipping',
+    
+    // 'https://platform.automizelyapi.io/suppliers',
+    // 'https://product.automizelyapi.io/dropshipping',
   ],
   /*
   ** Build configuration

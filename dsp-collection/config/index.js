@@ -11,14 +11,16 @@ module.exports = {
     assetsPublicPath: '/',
     proxyTable: {
       '/suppliers':{
-        target: "http://localhost:8080/suppliers",
+        // target: "http://localhost:8080/suppliers",
+        target: "https://platform.automizelyapi.com/suppliers",
         changeOrigin:true,
         pathRewrite:{
             '^/suppliers':''
         }
       },
       '/dropshipping':{
-        target: "http://localhost:8079/dropshipping",
+        // target: "http://localhost:8079/dropshipping",
+        target: "https://product.automizelyapi.com/dropshipping",
         changeOrigin:true,
         pathRewrite:{
             '^/dropshipping':''
