@@ -57,7 +57,7 @@ export default {
       am_api_key: "",
       reqData:{
         order_numbers: "",
-        app_key: "dropshipping-release-incy",
+        app_key: "automizely-store",
         app_platform: "shopify",
         organization_id: "86cf3a92b2c04d849a6056e7cd82e043",
       }
