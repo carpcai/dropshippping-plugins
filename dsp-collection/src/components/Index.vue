@@ -92,7 +92,8 @@ export default {
         "landon-test-01": "9bba1ea4d5a144049772bef6b7a1841a",
         "dropshipping-release-incy": "86cf3a92b2c04d849a6056e7cd82e043",
         // "automizely-store":"b82f5a20ae024f5f82f2a90e8a54bc35",
-        "automizely-store":"86cf3a92b2c04d849a6056e7cd82e043",
+        // "automizely-store":"86cf3a92b2c04d849a6056e7cd82e043",
+        "automizely-store":"b82f5a20ae024f5f82f2a90e8a54bc35",
       },
       appData: {
         app: {
