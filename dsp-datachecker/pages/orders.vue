@@ -59,7 +59,7 @@ export default {
         order_numbers: "",
         app_key: "automizely-store",
         app_platform: "shopify",
-        organization_id: "86cf3a92b2c04d849a6056e7cd82e043",
+        organization_id: "b82f5a20ae024f5f82f2a90e8a54bc35",
       }
     }
   },
