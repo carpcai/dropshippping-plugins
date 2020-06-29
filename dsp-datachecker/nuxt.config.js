@@ -61,10 +61,16 @@ export default {
   ** Build configuration
   */
   build: {
+    publicPath: '/static/',
     /*
     ** You can extend webpack config here
     */
     extend (config, ctx) {
     }
+  },
+  constants: {
+    platform_url: 'https://platform.automizelyapi.com',
+    product_url: 'https://product.automizelyapi.com',
   }
+
 }

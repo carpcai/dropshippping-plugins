@@ -325,11 +325,9 @@ export default {
         variant.price.origin_amount = variant.price.amount;
         try{
           variant.price.shipping_amount = variantShippingPrice.prices[1].amount;
-          variant.price.amount = _.round(_.add(variantxSellPrice, variantShippingPrice.prices[1].amount), 0)
-          
         }catch(e){
         }
-        
+        variant.price.amount = _.round(_.add(variantxSellPrice, variantShippingPrice.prices[1].amount), 0)
       }
 
       return product
