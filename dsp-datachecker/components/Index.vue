@@ -11,6 +11,9 @@
         <Button type="primary" to="orders">
           Orders
         </Button>
+        <Button type="primary" to="orders-manager">
+          Order manager
+        </Button>
         <Button target="_blank" to="products">
           Products
         </Button>
@@ -27,7 +30,11 @@ import Logo from '~/components/Logo.vue'
 export default {
   components: {
     Logo
-  }
+  },
+  created: function () {
+    const self = this;
+    console.log(self.$nuxt.$route);
+  },
 }
 </script>
 

@@ -163,7 +163,7 @@ export default {
       let params = {page: page, limit:50}
       params.external_vendor_product_ids = queryStr
 
-			self.$axios.get(process.env.VUE_APP_API_URL_SUPPLIER + '/suppliers/v1/products',{params:params,  headers:headers}).then((response) => {
+			self.$axios.get(process.env.VUE_APP_API_URL_SUPPLIER + '/suppliers/v1/products',{params:params, headers:headers}).then((response) => {
         //修复精度问题。
         let products = response.data.data.products;
         for(let product of products){
@@ -316,18 +316,21 @@ export default {
         //循环给price 进行加价
         let variantxSellPrice = 0;
 
+        variant.price.origin_amount = variant.price.amount;
+        try{
+          variant.price.shipping_amount = variantShippingPrice.prices[1].amount;
+        }catch(e){
+          
+        }
+        variant.price.amount = _.round(_.add(variantxSellPrice, variantShippingPrice.prices[1].amount), 0)
+
         for(let priceFactor of self.priceFactors){
           if(priceFactor.min <= variant.price.amount && variant.price.amount <= priceFactor.max){
             variantxSellPrice = _.round(_.multiply(variant.price.amount, priceFactor.factor),0)
           }
         }
 
-        variant.price.origin_amount = variant.price.amount;
-        try{
-          variant.price.shipping_amount = variantShippingPrice.prices[1].amount;
-        }catch(e){
-        }
-        variant.price.amount = _.round(_.add(variantxSellPrice, variantShippingPrice.prices[1].amount), 0)
+        
       }
 
       return product

@@ -115,7 +115,7 @@ export default {
 
     console.log(config.default.constants.platform_url);
     console.log(config.default.constants.product_url);
-
+  
     self.initApiKey();
     self.searchStart();
   },
