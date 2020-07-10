@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>popup页</title>
+	<meta charset="utf-8"/>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<style>
+	body {
+		font-family: 'Microsoft Yahei';
+	}
+	a {margin-right: 10px;}
+	.title{
+		border-bottom: 1px dashed #e5e5e5;
+	}
+	ul {
+		padding-left: 5px;
+	}
+	ul li {
+		padding: 3px 5px 3px 2px;
+		cursor: pointer;
+		color: #555;
+		-webkit-transition: all .4s ease;
+		text-align: justify;
+		display: block;
+		height: 20px;
+		line-height: 20px;
+		width: 116px;
+		border-bottom: 1px dashed #e5e5e5;
+		overflow: hidden;
+	}
+	ul li>b {
+		width: 14px;
+		height: 14px;
+		-webkit-transition: all .5s ease;
+		display: inline-block;
+		line-height: 20px;
+		/* margin-right: 5px; */
+		color: #48f;
+	}
+	ul li:hover > b {
+		/* margin-left: 5px; */
+		transform:rotate(360deg);
+		-ms-transform:rotate(360deg); 	/* IE 9 */
+		-moz-transform:rotate(360deg); 	/* Firefox */
+		-webkit-transform:rotate(360deg); /* Safari 和 Chrome */
+		-o-transform:rotate(360deg); 	/* Opera */
+	}
+	</style>
+</head>
+<body>
+	<div class="title">Dropshipping<span></span></div>
+    <ul>
+        <li id="open-index"><b>☷</b>打开管理工具首页</li>
+    </ul>
+	<script type="text/javascript" src="js/jquery-1.8.3.js"></script>
+	<script type="text/javascript" src="js/popup.js"></script>
+</body>
+</html>
