@@ -85,11 +85,13 @@ export default {
       publishLoading: false,
       organizationArray: [
         "landon-test-01",
+        "landon-test-05",
         "dropshipping-release-incy",
         "automizely-store",
       ],
       organizationMap: {
         "landon-test-01": "9bba1ea4d5a144049772bef6b7a1841a",
+        "landon-test-05": "9bba1ea4d5a144049772bef6b7a1841a",
         "dropshipping-release-incy": "86cf3a92b2c04d849a6056e7cd82e043",
         // "automizely-store":"b82f5a20ae024f5f82f2a90e8a54bc35",
         // "automizely-store":"86cf3a92b2c04d849a6056e7cd82e043",
@@ -98,7 +100,7 @@ export default {
       appData: {
         app: {
           key: "automizely-store",
-          name: "aftership",
+          name: "dropshipping",
           platform: "shopify"
         },
         organization: {
@@ -152,6 +154,7 @@ export default {
       if(self.api_key){
         self.$cookies.set('am-api-key', self.api_key)
         headers['am-api-key'] = self.api_key
+        headers['am-organization-id'] = self.appData.organization.id
       }
 
       let data = self.input.split(/[\s\n]/);
@@ -189,6 +192,7 @@ export default {
       self.pushNumber = 0;
       let headers = {
         'am-api-key': self.api_key, 
+        'am-organization-id': self.appData.organization.id
         // "Content-Type": "application/json",
       };
 
@@ -242,7 +246,8 @@ export default {
     publishProduct(product_id, o){
       const self = this;
       let headers = {
-        'am-api-key': self.api_key, 
+        'am-api-key': self.api_key,
+        'am-organization-id': self.appData.organization.id
         // "Content-Type": "application/json",
       };
 
@@ -316,19 +321,23 @@ export default {
         //循环给price 进行加价
         let variantxSellPrice = 0;
 
-        for(let priceFactor of self.priceFactors){
-          if(priceFactor.min <= variant.price.amount && variant.price.amount <= priceFactor.max){
-            variantxSellPrice = _.round(_.multiply(variant.price.amount, priceFactor.factor),0)
-          }
-        }
-
         variant.price.origin_amount = variant.price.amount;
+
+        let variantShippingPricePricesAmount = 0
         try{
-          variant.price.shipping_amount = variantShippingPrice.prices[1].amount;
-          variant.price.amount = _.round(_.add(variantxSellPrice, variantShippingPrice.prices[1].amount), 0)
-          
+          variantShippingPricePricesAmount = variantShippingPrice.prices[1].amount;
         }catch(e){
         }
+
+        for(let priceFactor of self.priceFactors){
+          if(priceFactor.min <= variant.price.amount && variant.price.amount <= priceFactor.max){
+            variant.price.amount = _.round(_.add(variant.price.amount, variantShippingPricePricesAmount, 0))
+
+            variant.price.amount = _.round(_.multiply(variant.price.amount, priceFactor.factor),0)
+          }
+        }
+      
+          variant.price.shipping_amount = variantShippingPricePricesAmount;
         
       }
 

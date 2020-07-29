@@ -284,9 +284,9 @@ export default {
         }else if(shippingOptionsMap["USA-4PX"]){
           shippingTitle = "4PX";
           shippingOptionRes = _.cloneDeep(shippingOptionsMap["USA-4PX"])
-        }else if(shippingOptionsMap["USA-US Express Shipping"]){
-          shippingTitle = "USPS";
-          shippingOptionRes = _.cloneDeep(shippingOptionsMap["USA-US Express Shipping"])
+        // }else if(shippingOptionsMap["USA-US Express Shipping"]){
+        //   shippingTitle = "USPS";
+        //   shippingOptionRes = _.cloneDeep(shippingOptionsMap["USA-US Express Shipping"])
         }else if(shippingOptionsMap["USA-US Standard"]){
           shippingTitle = "4PX"
           shippingOptionRes = _.cloneDeep(shippingOptionsMap["USA-US Standard"])
@@ -326,6 +326,7 @@ export default {
 
         for(let priceFactor of self.priceFactors){
           if(priceFactor.min <= variant.price.amount && variant.price.amount <= priceFactor.max){
+            //乘以价格系数
             variantxSellPrice = _.round(_.multiply(variant.price.amount, priceFactor.factor),0)
           }
         }
