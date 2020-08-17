@@ -30,18 +30,18 @@
       <Input v-model="reqData.organization_id" placeholder="organization id" style="width: 240px" />
       <div>
         <Input search enter-button v-model="reqData.order_numbers" style="width: 220px" placeholder="订单Id"  @on-search="searchStart"/>
-        
+
       </div>
-      
-      
+
+
     </div>
-    <div style="display: flex;"> 
+    <div style="display: flex;">
       <div style="padding: 6px;background: #f8f8f9;">
         <Card title="Dropshipping" icon="ios-options" :padding="0" shadow styl  e="width: 460px;">
             <div class="json-card">
               <json-view :data="dropshippingList"/>
             </div>
-        </Card>  
+        </Card>
       </div>
       <div style="padding: 6px;background: #f8f8f9">
         <Card title="Supplier" icon="ios-options" :padding="0" shadow style="width: 460px;">
@@ -93,8 +93,8 @@ export default {
       requestEnv: "production",
       requestEnvMap: {
         dev:{
-          product_url: "",
-          platform_url: "",
+          product_url: "http://localhost:8080",
+          platform_url: "http://localhost:8079",
         },
         release:{
           product_url: "https://release-incy-platform.automizelyapi.io",
@@ -115,7 +115,7 @@ export default {
 
     console.log(config.default.constants.platform_url);
     console.log(config.default.constants.product_url);
-  
+
     self.initApiKey();
     self.searchStart();
   },
@@ -126,11 +126,11 @@ export default {
     },
     async searchStart(){
       const self = this;
-      
+
       if(self.am_api_key){
         self.$cookies.set('am-api-key', self.am_api_key)
       }
-    
+
       let business_order_id = await self.getDropshippingList();
       let supplier_order_id = await self.getSuppliersList(business_order_id);
       self.getVendorList(supplier_order_id);
@@ -147,8 +147,11 @@ export default {
       }
 
       const res = await this.$axios.$get(self.requestEnvMap[self.requestEnv].platform_url+ '/dropshipping/v1/orders', {
-        params: req, 
-        headers: {"am-api-key": self.am_api_key},
+        params: req,
+        headers: {
+          "am-api-key": self.am_api_key,
+          "am-organization-id": self.reqData.organization_id
+        },
       })
       self.dropshippingList = res.data.orders
       if(!res.data.orders[0]){
@@ -167,8 +170,11 @@ export default {
       const res = await this.$axios.$get(self.requestEnvMap[self.requestEnv].product_url + '/suppliers/v1/orders',{
         params: {
           business_order_ids: business_order_id,
-        }, 
-        headers: {"am-api-key": self.am_api_key},
+        },
+        headers: {
+          "am-api-key": self.am_api_key,
+          "am-organization-id": self.reqData.organization_id
+        },
       })
 
       if(!res.data.orders[0]){
@@ -176,7 +182,7 @@ export default {
         return ''
       }
       self.supplierList = res.data.orders[0]
-      
+
       return res.data.orders[0].id
     },
     async getVendorList(supplier_order_id) {
@@ -189,8 +195,11 @@ export default {
       const res = await this.$axios.$get(self.requestEnvMap[self.requestEnv].product_url + '/suppliers/v1/vendors-orders',{
         params: {
           supplier_order_id: supplier_order_id
-        }, 
-        headers: {"am-api-key": self.am_api_key},
+        },
+        headers: {
+          "am-api-key": self.am_api_key,
+          "am-organization-id": self.reqData.organization_id
+        },
       })
       self.vendorList = res.data.orders
     },
@@ -206,8 +215,11 @@ export default {
       "status":"blocked",
       "remark":"block order"
 }, {
-        params: {}, 
-        headers: {"am-api-key": self.am_api_key},
+        params: {},
+        headers: {
+          "am-api-key": self.am_api_key,
+          "am-organization-id": self.reqData.organization_id
+        },
       })
       self.modal_loading = false;
       self.block_modal = false;
@@ -246,7 +258,7 @@ export default {
   padding-top: 15px;
 }
 .json-card{
-  height: 600px; 
+  height: 600px;
   overflow-y: scroll;
 }
 </style>

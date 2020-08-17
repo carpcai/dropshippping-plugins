@@ -31,11 +31,18 @@
       <Select v-model="orderStatus" style="width:100px">
         <Option v-for="(item) in orderStatusMap" :value="item.name" :key="item.name">{{ item.name }}</Option>
       </Select>
-      <div>
+      <div style="display: inline-block;vertical-align: middle;">
         <Input search enter-button v-model="reqData.order_numbers" style="width: 220px" placeholder="订单Id"  @on-search="searchStart"/>
       </div>
+      <div style="display: inline-block;vertical-align: middle;">
+        <JsonCSV
+          :data   = "exportData"
+          name    = "billing.csv">
+          <Button type="primary" @click="exportBilling">账单导出</Button>
+        </JsonCSV>
+      </div>
     </div>
-    <div style="display: flex;"> 
+    <div style="display: flex;">
       <div style="padding: 6px;background: #fff;width:94%; margin:0 auto">
           <List item-layout="vertical" border="true">
             <ListItem v-for="item in dropshippingList" :key="item.title">
@@ -81,32 +88,36 @@
 <script>
 import Logo from '~/components/Logo.vue'
 import jsonView from 'vue-json-views'
+import JsonCSV from 'vue-json-csv'
+// import Billing from '~/components/Billing.vue'
 
 const config = require('~/nuxt.config.js')
-
 export default {
   components: {
     Logo,
-    jsonView
+    jsonView,
+    JsonCSV
+    // Billing
   },
   data () {
     return {
-      dropshippingList:[],
-      supplierList:{},
-      vendorList:{},
+      exportData: [],
+      dropshippingList: [],
+      supplierList: {},
+      vendorList: {},
       am_api_key: "",
-      reqData:{
+      reqData: {
         order_numbers: "",
         app_key: "automizely-store",
         app_platform: "shopify",
         organization_id: "b82f5a20ae024f5f82f2a90e8a54bc35",
       },
       orderStatus: 'normal',
-      orderStatusMap:[
+      orderStatusMap: [
         {name: "normal"},
         {name: "abnormal"}
       ],
-      ordersItemsColumns:[
+      ordersItemsColumns: [
         {
           title: '图片',
           width: 150,
@@ -117,29 +128,29 @@ export default {
           title: '单价',
           // key: 'price',
           slot: 'unit_price',
-          width:'90px'
+          width: '90px'
         },
         {
           title: '数量',
           key: 'quantity',
-          width:'90px'
+          width: '90px'
         },
       ],
-      ordersColumns:[
+      ordersColumns: [
         {
           title: '订单平台',
           key: 'platform',
-          width:'110px'
+          width: '110px'
         },
         {
           title: '下单金额',
           key: 'price',
-          width:'90px'
+          width: '90px'
         },
         {
           title: '运费',
           key: 'shipping_price',
-           width:'80px'
+          width: '80px'
         },
         {
           title: '下单时间',
@@ -160,30 +171,30 @@ export default {
         {
           title: '订单状态',
           key: 'order_status',
-          width:'100px'
+          width: '100px'
         },
         {
           title: '支付状态',
           key: 'financial_status',
-          width:'100px'
+          width: '100px'
         },
         // {
         //   title: '买家信息',
         //   key: 'buyer'
         // }
       ],
-      orderList:[],
+      orderList: [],
       requestEnv: "production",
       requestEnvMap: {
-        dev:{
+        dev: {
           product_url: "",
           platform_url: "",
         },
-        release:{
+        release: {
           product_url: "https://release-incy-platform.automizelyapi.io",
           platform_url: "https://release-incy-product.automizelyapi.io",
         },
-        production:{
+        production: {
           product_url: "https://platform.automizelyapi.com",
           platform_url: "https://product.automizelyapi.com",
         },
@@ -192,14 +203,14 @@ export default {
       block_modal: false,
       modal_loading: false,
       block_order_ids: [],
-    }
+    };
   },
   created: function () {
     const self = this;
 
     console.log(config.default.constants.platform_url);
     console.log(config.default.constants.product_url);
-  
+
     self.initApiKey();
     self.searchStart();
   },
@@ -210,11 +221,11 @@ export default {
     },
     async searchStart(){
       const self = this;
-      
+
       if(self.am_api_key){
         self.$cookies.set('am-api-key', self.am_api_key)
       }
-    
+
       let business_order_id = await self.getDropshippingList();
     },
     async getDropshippingList() {
@@ -223,23 +234,27 @@ export default {
         app_key: self.reqData.app_key,
         app_platform: self.reqData.app_platform,
         organization_id: self.reqData.organization_id,
+        limit: 100,
       }
       if(self.reqData.order_numbers){
         req.order_numbers = self.reqData.order_numbers;
       }
 
       const res = await this.$axios.$get(self.requestEnvMap[self.requestEnv].platform_url+ '/dropshipping/v1/orders', {
-        params: req, 
-        headers: {"am-api-key": self.am_api_key},
+        params: req,
+        headers: {
+          "am-api-key": self.am_api_key,
+          "am-organization-id": self.reqData.organization_id
+        },
       })
-      
+
       if(!res.data.orders){
         return ''
       }
 
       const promiseQueue = [];
       for(let order of res.data.orders){
-        promiseQueue.push(self.supplementContent(order)); 
+        promiseQueue.push(self.supplementContent(order));
       }
       await Promise.all(promiseQueue).then(responses => {
         // responses.map(response => write(response));
@@ -249,12 +264,62 @@ export default {
 
       //整理数据。
       await self.sortData(res.data.orders)
+      //整理要导出的数据
+      await self.sortExportData(res.data.orders);
+    },
+    async sortExportData(orders){
+      const self = this
+      let exportData = []
+      if(orders.length <= 0){
+        return ;
+      }
+
+      for (let order of orders){
+        //是否为第一个值
+        let isFirst = true;
+
+        // 读取vendor数据
+
+        if(!order.vendor_orders || order.vendor_orders.length <= 0){
+          continue;
+        }
+        for(let vendor_order of order.vendor_orders){
+
+          if(!vendor_order.items || vendor_order.items.length <= 0){
+            continue;
+          }
+          for (let orderItem of vendor_order.items){
+            let data = {
+              "Order ID": isFirst ? order.id : " ",
+              "Order Number": isFirst ? order.order_name : " ",
+              "Order Price": isFirst ? vendor_order.order_total.amount / 100  : " ",
+              "Order Price (cost)": isFirst ? vendor_order.order_total_cost.amount / 100 : " ",
+              "Shipping Price (cost)": vendor_order.shipping_total_cost.amount / 100,
+              "Order ID (vendor)": vendor_order.external_vendor_order_id,
+              "Item ID (Automizely)": orderItem.id || " " ,
+              "Item ID (Eprolo)": orderItem.external_vendor_item_id || " ",
+              "Item Sku (Automizely)": orderItem.sku || " ",
+              "Item Name (Eprolo)": orderItem.title || " ",
+              "Item price USD (cost)": orderItem.unit_price_cost.amount/100 || " ",
+              "Item qty": orderItem.quantity,
+              "Status": order.order_status,
+              "Fulfillment Status (dropshipping)": order.fulfillment_status,
+              "Financial Status (vendor)": vendor_order.financial_status,
+              "Created Time": order.created_at,
+            }
+            isFirst = false
+
+            exportData.push(data)
+          }
+        }
+      }
+      self.exportData = exportData
 
     },
     async sortData(orders){
       const self = this
 
-      // 
+      //
       for (let order of orders){
         //整理order信息
         let orderTemp = [{
@@ -266,10 +331,9 @@ export default {
           shipping_price: (order.shipping_total.amount/100),
           order_status: order.order_status,
           financial_status: order.financial_status,
-          
-          // buyer: order.,
+
         }];
-        
+
         //整理supplier信息
         if(order.supplier_order){
           const supplier_order = order.supplier_order;
@@ -282,15 +346,14 @@ export default {
             shipping_price: supplier_order.shipping_total.amount / 100,
             order_status: supplier_order.order_status,
             financial_status: supplier_order.financial_status,
-            // buyer: order.,
           })
         }
-        
+
         let vendor_order_price_total = 0;
         let vendor_order_price_cost_total = 0;
         //整理vendor信息
         if(order.vendor_orders){
-          
+
           for(const vendor_order of order.vendor_orders){
             // const vendor_order = order.vendor_orders
             orderTemp.push(
@@ -320,7 +383,7 @@ export default {
           order_status: '',
           // buyer: vendor_order.,
         });
-        
+
 
         //整理Buyer信息
         order.buyer = `姓名: ${order.shipping_address.first_name} ${order.shipping_address.last_name}  |  电话：${order.shipping_address.phone.country_code}-${order.shipping_address.phone.number} | 地址: ${order.shipping_address.address_line_1}, ${order.shipping_address.city}, ${order.shipping_address.state} ${order.shipping_address.postal_code} | email: ${order.shipping_address.email}`
@@ -328,6 +391,7 @@ export default {
         order.list_content = orderTemp
       }
       self.dropshippingList = orders
+
     },
     async supplementContent(order) {
       const self = this
@@ -358,8 +422,11 @@ export default {
       const res = await this.$axios.$get(self.requestEnvMap[self.requestEnv].product_url + '/suppliers/v1/orders',{
         params: {
           business_order_ids: business_order_id,
-        }, 
-        headers: {"am-api-key": self.am_api_key},
+        },
+        headers: {
+          "am-api-key": self.am_api_key,
+          "am-organization-id": self.reqData.organization_id
+        },
       })
 
       if(!res.data.orders){
@@ -367,7 +434,7 @@ export default {
         return ''
       }
       // self.supplierList = res.data.orders[0]
-      
+
       return res.data.orders[0]
     },
     async getVendorList(supplier_order_id) {
@@ -380,8 +447,11 @@ export default {
       const res = await this.$axios.$get(self.requestEnvMap[self.requestEnv].product_url + '/suppliers/v1/vendors-orders',{
         params: {
           supplier_order_id: supplier_order_id
-        }, 
-        headers: {"am-api-key": self.am_api_key},
+        },
+        headers: {
+          "am-api-key": self.am_api_key,
+          "am-organization-id": self.reqData.organization_id
+        },
       })
       if(!res.data.orders){
         return [];
@@ -395,7 +465,7 @@ export default {
       for(let vendor_order of vendor_orders){
         self.block_order_ids.push(vendor_order.id);
       }
-      
+
       self.block_modal = true
     },
     async blockOrder(){
@@ -406,22 +476,24 @@ export default {
           return false
       }
       self.modal_loading = true;
-      
+
       for (let block_order_id of self.block_order_ids){
         const res = await this.$axios.$post(self.requestEnvMap[self.requestEnv].product_url + '/suppliers/v1/vendors-orders/' + block_order_id + '/block', {
           "status":"blocked",
           "remark":"block order"
         }, {
-          params: {}, 
-          headers: {"am-api-key": self.am_api_key},
+          params: {},
+          headers: {
+            "am-api-key": self.am_api_key,
+            "am-organization-id": self.reqData.organization_id
+          },
         })
       }
-      
+
       self.modal_loading = false;
       self.block_modal = false;
       this.$Message.info('拦截成功');
-      // console.log(res);
-    }
+    },
   },
   filters: {
       formatDate: function (value) {
@@ -474,7 +546,7 @@ export default {
   padding-top: 15px;
 }
 .json-card{
-  height: 600px; 
+  height: 600px;
   overflow-y: scroll;
 }
 </style>
